@@ -1,0 +1,9 @@
+{
+    "name": "pikimoni_bot",
+    "version": "0.0.1",
+    "dependencies": {
+        "mongoose": "^5.9.9",
+        "telegraf": "^3.37.0",
+        "underscore": "^1.10.2"
+    }
+}
