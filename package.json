@@ -9,7 +9,7 @@
   "dependencies": {
     "mongoose": "^5.9.9",
     "telegraf": "^3.37.0",
-    "underscore": "^1.10.2"  
+    "underscore": "^1.10.2"
   },
   "devDependencies": {}
 }
