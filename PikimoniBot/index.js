@@ -30,8 +30,8 @@ const bot = new Telegraf('1081398486:AAFs2L1OOtRTi321vuNwUrgn7ddMlNoWD4g', { web
 bot.telegram.setWebhook('https://pikimoni-bot.azurewebsites.net/api/PikimoniBot');
 
 bot.on('callback_query', getCity);
-bot.on('sticker', welcomeMessage);
-bot.hears(/^/, welcomeMessage);
+bot.on('sticker', qaService.welcomeMessage);
+bot.hears(/^/, qaService.welcomeMessage);
 bot.catch((err, ctx) => { console.log(`Error for ${ctx.updateType}`, err); });
 
 /**
@@ -61,17 +61,6 @@ function getData(city, functionDirectory) {
             return resolve(city.data);
         });
     });
-}
-
-/**
- * Returns a welcome messge with buttons for all available cities
- * @param context - Telegraf context
- */
-function welcomeMessage(context) {
-    return context.reply(`Hey ${context.from.first_name}!\nSelect a city where you'd like to have a great flat white:`, Extra.markup((m) =>
-        m.inlineKeyboard(
-            cities.map((city) => m.callbackButton(city.name, city.id))
-        )));
 }
 
 /**
