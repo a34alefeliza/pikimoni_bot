@@ -52,17 +52,38 @@ const newQuestionScene = new WizardScene(
         })
     }
 );
+const newAnswerScene = new WizardScene(
+    'new-answer',
+    ctx => {
+        ctx.wizard.state.question = ctx.callbackQuery.data.split('/')[1];
+        ctx.reply('Write the answer:')
+        return ctx.wizard.next();
+    },
+    ctx => {
+        ctx.wizard.state.answer = ctx.message.text;
+        var answer = new Answer(ctx.wizard.state);
+        answer.save().then(function(question){
+            console.log(question.toJSON());
+            ctx.reply('Thank you for writing an answer and contributing to PIKIMONI Knowledge Base!');
+            return ctx.scene.leave();
+        })
+    }
+);
 
-const stage = new Stage([newTopicScene, newQuestionScene], {});
+const stage = new Stage([newTopicScene, newQuestionScene, newAnswerScene], {});
 
 //bot.on('callback_query', getCity);
 bot.use(session())
 bot.use(stage.middleware());
 bot.on('sticker', qaService.showHelp);
+
 bot.action('topics', qaService.topics);
 bot.action(qaService.newQuestionFn, qaService.newQuestion);
 bot.action(qaService.topicFn, qaService.showQuestions);
-bot.action(qaService.questionFn, qaService.showAnswer);
+bot.action(qaService.questionFn, qaService.showAnswers);
+bot.action(qaService.answerFn, qaService.newAnswer);
+
+bot.command('newtopic', qaService.newTopic);
 
 bot.hears(/^/, qaService.showHelp);
 bot.catch((err, ctx) => { console.log(`Error for ${ctx.updateType}`, err); });

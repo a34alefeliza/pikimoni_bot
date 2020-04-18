@@ -5,6 +5,7 @@ const fs = require('fs');
 const path = require('path');
 const Topic = require('../model/topic');
 const Question = require('../model/question');
+const Answer = require('../model/answer');
 const WizardScene = require('telegraf/scenes/wizard');
 const Stage = require('telegraf/stage');
 
@@ -51,14 +52,38 @@ module.exports = {
         return callbackData.startsWith('question/')
     },
 
-    showAnswer: function(ctx, questionId){
+    showAnswers: function(ctx){
         const queryData = ctx.callbackQuery.data.split('/');
-        console.log('showAnswer:'+queryData);
-        Question.findById(queryData[1]).then(function(question){
-            return ctx.reply("The answer is 42")
+        Answer.find({question:queryData[1]}).then(function(answers){
+            if (answers.length){
+                var html='<html><body>';
+                _.each(answers, function(answer){
+                    html+='<p>'+answer.answer+'</p>';
+                })
+                html+='</body></html>';
+                return ctx.replyWithHtml(html, 
+                    Markup.inlineKeyboard(
+                        [Markup.callbackButton('Add an answer', 'newAnswer/'+queryData[1])]
+                    ).extra()
+                )
+            } else {
+                return ctx.reply("No answers yet.", 
+                    Markup.inlineKeyboard(
+                        [Markup.callbackButton('Add an answer', 'newAnswer/'+queryData[1])]
+                    ).extra()
+                )
+            }
         })
     },
 
+    answerFn: function(callbackData) {
+        return callbackData.startsWith('newAnswer/')
+    },
+
+    newAnswer: function(ctx){
+        ctx.scene.enter('new-answer');
+    },
+    
     topics: function(ctx){
         Topic.find().then(function(topics){
             var buttons =_.map(topics, function(topic){
@@ -76,6 +101,10 @@ module.exports = {
     
     newQuestion: function(ctx){
         ctx.scene.enter('new-question');
+    },
+
+    newTopic: function(ctx){
+        ctx.scene.enter('new-topic');
     },
 
     /**
