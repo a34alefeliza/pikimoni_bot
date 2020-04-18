@@ -11,7 +11,7 @@ const Question = require('./model/question');
 const qaService = require('./service/qa');
 
 const bot = new Telegraf('1081398486:AAFs2L1OOtRTi321vuNwUrgn7ddMlNoWD4g', { webhookReply: true })
-//bot.telegram.setWebhook('https://pikimoni-bot.azurewebsites.net/api/PikimoniBot');
+bot.telegram.setWebhook('https://pikimoni-bot.azurewebsites.net/api/PikimoniBot');
 
 // Log to console middleware
 bot.use((ctx, next) => {
