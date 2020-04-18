@@ -4,6 +4,8 @@ const WizardScene = require('telegraf/scenes/wizard');
 const Stage = require('telegraf/stage');
 const session = require('telegraf/session')
 
+const Topic = require('./model/topic');
+const Question = require('./model/question');
 const qaService = require('./service/qa');
 
 console.log('Starting the bot...');
