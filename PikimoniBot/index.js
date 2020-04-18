@@ -93,15 +93,15 @@ module.exports = async function (context, req) {
     bot.context.functionDirectory = context.executionContext.functionDirectory;
 
     try {
-        console.log('req.rawBody:'+req.rawBody);
+        context.log('req.rawBody:'+req.rawBody);
         const update = JSON.parse(req.rawBody);
 
         bot.handleUpdate(update).catch((error) => {
-            console.log('Error processing update');
-            console.log(error);
+            context.log('Error processing update');
+            context.log(error);
         });
     } catch (error) {
-        console.error('Error parsing body', error);
+        context.error('Error parsing body', error);
         return context.res = {
             body: ""
         };
