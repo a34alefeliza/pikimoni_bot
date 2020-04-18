@@ -57,4 +57,63 @@ module.exports = {
         })
     },
 
+    /**
+     * Returns a welcome messge with buttons for all available cities
+     * @param context - Telegraf context
+     */
+    welcomeMessage: function (context) {
+        return context.reply(`Hey ${context.from.first_name}!\nSelect a city where you'd like to have a great flat white:`, Extra.markup((m) =>
+            m.inlineKeyboard(
+                cities.map((city) => m.callbackButton(city.name, city.id))
+            )));
+    },
+
+    /**
+     * Returns the markdown text for the specified city.
+     * @param city - the id of the city
+     * @param functionDirectory - path to the directory with data files
+     */
+    getData: function (city, functionDirectory) {
+        return new Promise((resolve, reject) => {
+            if (city.data) {
+                // return city data from cache
+                return resolve(city.data);
+            }
+
+            // read city data from a file
+            const filePath = path.join(functionDirectory, `${city.id}.md`);
+            fs.readFile(filePath, (error, data) => {
+                if (error) {
+                    console.log(error);
+
+                    city.data = undefined;
+                    return resolve('no data :(');
+                }
+
+                // save city data to cache
+                city.data = data.toString();
+                return resolve(city.data);
+            });
+        });
+    },
+
+
+    /**
+     * Returns a data for the specified city
+     * @param context - Telegraf context
+     */
+    getCity: function (context) {
+        const cityId = context.update.callback_query.data;
+        const city = cities.filter((city) => city.id === cityId)[0];
+
+        return context.answerCbQuery().then(() => {
+            this.getData(city, context.functionDirectory).then((data) => {
+                return context.replyWithMarkdown(data, {
+                    // do not add preview for links
+                    disable_web_page_preview: true,
+                });
+            });
+        });
+    }
+    
 }
