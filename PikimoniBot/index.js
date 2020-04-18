@@ -10,8 +10,6 @@ const Topic = require('./model/topic');
 const Question = require('./model/question');
 const qaService = require('./service/qa');
 
-context.log('JavaScript trigger function processed a request.');
-
 const bot = new Telegraf('1081398486:AAFs2L1OOtRTi321vuNwUrgn7ddMlNoWD4g', { webhookReply: true })
 //bot.telegram.setWebhook('https://pikimoni-bot.azurewebsites.net/api/PikimoniBot');
 
@@ -89,6 +87,8 @@ mongoose.connect(connectionString, mongoOpts).then(function (dbInstance) {
 })
 
 module.exports = async function (context, req) {
+    context.log('JavaScript trigger function processed a request.');
+
     // extend Telegraf context with the data files directory
     bot.context.functionDirectory = context.executionContext.functionDirectory;
 
