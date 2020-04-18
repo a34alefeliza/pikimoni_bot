@@ -1,6 +1,8 @@
 const Markup = require('telegraf/markup')
 const _ = require('underscore');
-
+const Extra = require('telegraf/extra');
+const fs = require('fs');
+const path = require('path');
 const Topic = require('../model/topic');
 const Question = require('../model/question');
 
