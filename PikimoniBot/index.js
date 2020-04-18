@@ -6,6 +6,7 @@ const session = require('telegraf/session')
 
 const Topic = require('./model/topic');
 const Question = require('./model/question');
+const Answer = require('./model/answer');
 const qaService = require('./service/qa');
 
 console.log('Starting the bot...');
