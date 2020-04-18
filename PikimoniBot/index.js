@@ -11,25 +11,6 @@ const qaService = require('./service/qa');
 
 console.log('Starting the bot...');
 
-const cities = [
-    {
-        name: 'Amsterdam',
-        id: 'Amsterdam',
-    },
-    {
-        name: 'Berlin',
-        id: 'Berlin',
-    },
-    {
-        name: 'Lisbon',
-        id: 'Lisbon',
-    },
-    {
-        name: 'Minsk',
-        id: 'Minsk',
-    },
-];
-
 const bot = new Telegraf('1081398486:AAFs2L1OOtRTi321vuNwUrgn7ddMlNoWD4g', { webhookReply: true })
 bot.telegram.setWebhook('https://pikimoni-bot.azurewebsites.net/api/PikimoniBot');
 
@@ -39,12 +20,12 @@ var mongoOpts = {
     useNewUrlParser: true, 
     useUnifiedTopology: true 
 };
-mongoose.connect(connectionString, mongoOpts).then(function (dbInstance) {
-    bot.on('callback_query', qaService.getCity);
-    bot.on('sticker', qaService.welcomeMessage);
-    bot.hears(/^/, qaService.welcomeMessage);
-    bot.catch((err, ctx) => { console.log(`Error for ${ctx.updateType}`, err); });
-})
+mongoose.connect(connectionString, mongoOpts);
+
+bot.on('callback_query', qaService.getCity);
+bot.on('sticker', qaService.welcomeMessage);
+bot.hears(/^/, qaService.welcomeMessage);
+bot.catch((err, ctx) => { console.log(`Error for ${ctx.updateType}`, err); });
 
 module.exports = async function (context, req) {
     // extend Telegraf context with the data files directory

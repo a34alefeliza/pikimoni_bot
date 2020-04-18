@@ -64,7 +64,7 @@ module.exports = {
     welcomeMessage: function (context) {
         return context.reply(`Hey ${context.from.first_name}!\nSelect a city where you'd like to have a great flat white:`, Extra.markup((m) =>
             m.inlineKeyboard(
-                cities.map((city) => m.callbackButton(city.name, city.id))
+                this.cities.map((city) => m.callbackButton(city.name, city.id))
             )));
     },
 
@@ -114,6 +114,27 @@ module.exports = {
                 });
             });
         });
-    }
+    },
+
+    cities: [
+        {
+            name: 'Amsterdam',
+            id: 'Amsterdam',
+        },
+        {
+            name: 'Berlin',
+            id: 'Berlin',
+        },
+        {
+            name: 'Lisbon',
+            id: 'Lisbon',
+        },
+        {
+            name: 'Minsk',
+            id: 'Minsk',
+        },
+    ]
+    
+    
     
 }
