@@ -7,6 +7,7 @@ const Question = require('../model/question');
 module.exports = {
 
     showHelp: function(ctx){
+        console.log('showHelp');
         return ctx.reply(
             'Hi, '+ctx.from.first+'. I can help you with PIKIMONI.',
             Markup.inlineKeyboard([

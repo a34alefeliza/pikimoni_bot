@@ -93,6 +93,7 @@ module.exports = async function (context, req) {
     bot.context.functionDirectory = context.executionContext.functionDirectory;
 
     try {
+        console.log('req.rawBody:'+req.rawBody);
         const update = JSON.parse(req.rawBody);
 
         bot.handleUpdate(update).catch((error) => {
