@@ -7,7 +7,7 @@ const Question = require('../model/question');
 module.exports = {
 
     showHelp: function(ctx){
-        ctx.reply(
+        return ctx.reply(
             'Hi, '+ctx.from.first+'. I can help you with PIKIMONI.',
             Markup.inlineKeyboard([
                 Markup.callbackButton("Browse topics", "topics"),
@@ -27,7 +27,7 @@ module.exports = {
             var buttons =_.map(questions, function(question){
                 return Markup.callbackButton(question.question, 'question/'+question._id);
             })
-            ctx.reply("Here is list of questions for this topic:", 
+            return ctx.reply("Here is list of questions for this topic:", 
                 Markup.inlineKeyboard(_.chunk(buttons,1)).extra()
             )
         })
@@ -41,7 +41,7 @@ module.exports = {
         const queryData = ctx.callbackQuery.data.split('/');
         console.log('showAnswer:'+queryData);
         Question.findById(queryData[1]).then(function(question){
-            ctx.reply("The answer is 42")
+            return ctx.reply("The answer is 42")
         })
     },
 
@@ -50,7 +50,7 @@ module.exports = {
             var buttons =_.map(topics, function(topic){
                 return Markup.callbackButton(topic.name, 'topic/'+topic._id);
             })
-            ctx.reply("Pick up one of these topics:", 
+            return ctx.reply("Pick up one of these topics:", 
                 Markup.inlineKeyboard(_.chunk(buttons,1)).extra()
             )
         })
