@@ -10,7 +10,7 @@ const Topic = require('./model/topic');
 const Question = require('./model/question');
 const qaService = require('./service/qa');
 
-module.exports = async function (context) {
+module.exports = function (context) {
     context.log('JavaScript trigger function processed a request.');
 
     const bot = new Telegraf('1081398486:AAFs2L1OOtRTi321vuNwUrgn7ddMlNoWD4g', { webhookReply: true })
