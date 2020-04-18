@@ -10,7 +10,18 @@ const Topic = require('./model/topic');
 const Question = require('./model/question');
 const qaService = require('./service/qa');
 
-const bot = new Telegraf('1081398486:AAFs2L1OOtRTi321vuNwUrgn7ddMlNoWD4g')
+const bot = new Telegraf('1081398486:AAFs2L1OOtRTi321vuNwUrgn7ddMlNoWD4g', { webhookReply: true })
+bot.telegram.setWebhook('https://pikimoni-bot.azurewebsites.net/api/PikimoniBot');
+
+// Log to console middleware
+bot.use((ctx, next) => {
+	console.log('Message from: ' + ctx.from.username)
+	return next()
+})
+
+bot.catch((err) => {
+	console.log('Unexpected error: ', err);
+})
 
 const connectionString = 'mongodb://pkm-mongo:DLwjqWBdEJzsv64WkfpxHAIKS92rgKHX853pLkt0bNL75uYe5pV9oTxz1LdrlDp1eCmOveyhEKWTMaPhIPLEoA==@pkm-mongo.mongo.cosmos.azure.com:10255/?ssl=true&appName=@pkm-mongo@';
 //const connectionString = 'mongodb://localhost:27018/bot';
