@@ -54,25 +54,28 @@ module.exports = {
 
     showAnswers: function(ctx){
         const queryData = ctx.callbackQuery.data.split('/');
-        Answer.find({question:queryData[1]}).then(function(answers){
-            if (answers.length){
-                var html='<html><body>';
-                _.each(answers, function(answer){
-                    html+='<p>'+answer.answer+'</p>';
-                })
-                html+='</body></html>';
-                return ctx.replyWithHtml(html, 
-                    Markup.inlineKeyboard(
-                        [Markup.callbackButton('Add an answer', 'newAnswer/'+queryData[1])]
-                    ).extra()
-                )
-            } else {
-                return ctx.reply("No answers yet.", 
-                    Markup.inlineKeyboard(
-                        [Markup.callbackButton('Add an answer', 'newAnswer/'+queryData[1])]
-                    ).extra()
-                )
-            }
+        Question.findById(queryData[1]).then(function(question){
+            Answer.find({question:question._id}).then(function(answers){
+                if (answers.length){
+                    var md='# '+question.question+'\n';
+                    _.each(answers, function(answer){
+                        md=md+'\n'+answer.answer+'\n';
+                    })
+                    return ctx.replyWithMarkdown(md, 
+                        Markup.inlineKeyboard([
+                            Markup.callbackButton('Add an answer', 'newAnswer/'+question._id),
+                            Markup.callbackButton('Back', 'topic/'+question.topic)
+                        ]
+                        ).extra()
+                    )
+                } else {
+                    return ctx.reply("No answers yet.", 
+                        Markup.inlineKeyboard(
+                            [Markup.callbackButton('Add an answer', 'newAnswer/'+queryData[1])]
+                        ).extra()
+                    )
+                }
+            })
         })
     },
 
