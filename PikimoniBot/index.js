@@ -86,6 +86,7 @@ module.exports = async function (context, req) {
     bot.context.functionDirectory = context.executionContext.functionDirectory;
 
     try {
+        context.log(req.rawBody);
         const update = JSON.parse(req.rawBody);
 
         bot.handleUpdate(update).catch((error) => {
