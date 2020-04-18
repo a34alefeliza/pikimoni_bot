@@ -3,8 +3,6 @@ const Extra = require('telegraf/extra');
 const fs = require('fs');
 const path = require('path');
 
-const qaService = require('./service/qa');
-
 console.log('Starting the bot...');
 
 const cities = [
@@ -30,8 +28,8 @@ const bot = new Telegraf('1081398486:AAFs2L1OOtRTi321vuNwUrgn7ddMlNoWD4g', { web
 bot.telegram.setWebhook('https://pikimoni-bot.azurewebsites.net/api/PikimoniBot');
 
 bot.on('callback_query', getCity);
-bot.on('sticker', qaService.welcomeMessage);
-bot.hears(/^/, qaService.welcomeMessage);
+bot.on('sticker', welcomeMessage);
+bot.hears(/^/, welcomeMessage);
 bot.catch((err, ctx) => { console.log(`Error for ${ctx.updateType}`, err); });
 
 /**
@@ -64,6 +62,17 @@ function getData(city, functionDirectory) {
 }
 
 /**
+ * Returns a welcome messge with buttons for all available cities
+ * @param context - Telegraf context
+ */
+function welcomeMessage(context) {
+    return context.reply(`Hey ${context.from.first_name}!\nSelect a city where you'd like to have a great flat white:`, Extra.markup((m) =>
+        m.inlineKeyboard(
+            cities.map((city) => m.callbackButton(city.name, city.id))
+        )));
+}
+
+/**
  * Returns a data for the specified city
  * @param context - Telegraf context
  */
@@ -87,6 +96,7 @@ module.exports = async function (context, req) {
 
     try {
         context.log(req.rawBody);
+        console.log(req.rawBody);
         const update = JSON.parse(req.rawBody);
 
         bot.handleUpdate(update).catch((error) => {
