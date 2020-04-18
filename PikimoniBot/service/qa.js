@@ -5,13 +5,53 @@ const fs = require('fs');
 const path = require('path');
 const Topic = require('../model/topic');
 const Question = require('../model/question');
+const WizardScene = require('telegraf/scenes/wizard');
+const Stage = require('telegraf/stage');
+
+const newTopicScene = new WizardScene(
+    'new-topic',
+    ctx => {
+        ctx.reply('Ok, you want to create a new topic. Enter the name:')
+        return ctx.wizard.next();
+    },
+    ctx => {
+        var topic = new Topic({name:ctx.message.text});
+        topic.save().then(function(topic){
+            ctx.reply(topic.name + ' created successfully.');
+            return ctx.scene.leave();
+        })
+    }
+);
+const newQuestionScene = new WizardScene(
+    'new-question',
+    ctx => {
+        qaService.showTopics(ctx);
+        return ctx.wizard.next();
+    },
+    ctx => {
+        ctx.wizard.state.topic = ctx.callbackQuery.data.split('/')[1];
+        ctx.reply('Write the question that you would like being answerd:')
+        return ctx.wizard.next();
+    },
+    ctx => {
+        ctx.wizard.state.question = ctx.message.text;
+        var question = new Question(ctx.wizard.state);
+        question.save().then(function(question){
+            console.log(question.toJSON());
+            ctx.reply('question submitted successfully. It will be answered as soon as possible.');
+            return ctx.scene.leave();
+        })
+    }
+);
+
+const stage = new Stage([newTopicScene, newQuestionScene], {});
 
 module.exports = {
 
     showHelp: function(ctx){
         console.log('showHelp');
         return ctx.reply(
-            'Hi, '+ctx.from.first+'. I can help you with PIKIMONI.',
+            'Hi! I can help you with PIKIMONI.',
             Markup.inlineKeyboard([
                 Markup.callbackButton("Browse topics", "topics"),
                 Markup.callbackButton("Submit a new question", "newQuestion"),
@@ -48,7 +88,7 @@ module.exports = {
         })
     },
 
-    showTopics: function(ctx){
+    topics: function(ctx){
         Topic.find().then(function(topics){
             var buttons =_.map(topics, function(topic){
                 return Markup.callbackButton(topic.name, 'topic/'+topic._id);
@@ -59,14 +99,37 @@ module.exports = {
         })
     },
 
+    newQuestion: function(ctw){
+        ctx.scene.enter('new-question');
+    },
+
     /**
      * Returns a welcome messge with buttons for all available cities
      * @param context - Telegraf context
      */
     welcomeMessage: function (context) {
+        var cities=[
+            {
+                name: 'Amsterdam',
+                id: 'Amsterdam',
+            },
+            {
+                name: 'Berlin',
+                id: 'Berlin',
+            },
+            {
+                name: 'Lisbon',
+                id: 'Lisbon',
+            },
+            {
+                name: 'Minsk',
+                id: 'Minsk',
+            },
+        ]
+    
         return context.reply(`Hey ${context.from.first_name}!\nSelect a city where you'd like to have a great flat white:`, Extra.markup((m) =>
             m.inlineKeyboard(
-                this.cities.map((city) => m.callbackButton(city.name, city.id))
+                cities.map((city) => m.callbackButton(city.name, city.id))
             )));
     },
 
@@ -118,24 +181,6 @@ module.exports = {
         });
     },
 
-    cities: [
-        {
-            name: 'Amsterdam',
-            id: 'Amsterdam',
-        },
-        {
-            name: 'Berlin',
-            id: 'Berlin',
-        },
-        {
-            name: 'Lisbon',
-            id: 'Lisbon',
-        },
-        {
-            name: 'Minsk',
-            id: 'Minsk',
-        },
-    ]
     
     
     

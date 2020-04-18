@@ -1,35 +1,29 @@
+var mongoose = require('mongoose');
 const Telegraf = require('telegraf');
 const Extra = require('telegraf/extra');
 const fs = require('fs');
 const path = require('path');
+const qaService = require('./service/qa');
 
 console.log('Starting the bot...');
 
-const cities = [
-    {
-        name: 'Amsterdam',
-        id: 'Amsterdam',
-    },
-    {
-        name: 'Berlin',
-        id: 'Berlin',
-    },
-    {
-        name: 'Lisbon',
-        id: 'Lisbon',
-    },
-    {
-        name: 'Minsk',
-        id: 'Minsk',
-    },
-];
+const connectionString = 'mongodb://pkm-mongo:DLwjqWBdEJzsv64WkfpxHAIKS92rgKHX853pLkt0bNL75uYe5pV9oTxz1LdrlDp1eCmOveyhEKWTMaPhIPLEoA==@pkm-mongo.mongo.cosmos.azure.com:10255/?ssl=true&appName=@pkm-mongo@';
+//const connectionString = 'mongodb://localhost:27018/bot';
+var mongoOpts = { 
+    useNewUrlParser: true, 
+    useUnifiedTopology: true 
+};
+mongoose.connect(connectionString, mongoOpts);
 
 const bot = new Telegraf('1081398486:AAFs2L1OOtRTi321vuNwUrgn7ddMlNoWD4g', { webhookReply: true })
 bot.telegram.setWebhook('https://pikimoni-bot.azurewebsites.net/api/PikimoniBot');
 
 bot.on('callback_query', getCity);
-bot.on('sticker', welcomeMessage);
-bot.hears(/^/, welcomeMessage);
+bot.on('sticker', qaService.showHelp);
+bot.action('topics', qaService.topics);
+bot.action('newQuestion', qaService.newQuestion);
+
+bot.hears(/^/, qaService.showHelp);
 bot.catch((err, ctx) => { console.log(`Error for ${ctx.updateType}`, err); });
 
 /**
@@ -59,17 +53,6 @@ function getData(city, functionDirectory) {
             return resolve(city.data);
         });
     });
-}
-
-/**
- * Returns a welcome messge with buttons for all available cities
- * @param context - Telegraf context
- */
-function welcomeMessage(context) {
-    return context.reply(`Hey ${context.from.first_name}!\nSelect a city where you'd like to have a great flat white:`, Extra.markup((m) =>
-        m.inlineKeyboard(
-            cities.map((city) => m.callbackButton(city.name, city.id))
-        )));
 }
 
 /**
