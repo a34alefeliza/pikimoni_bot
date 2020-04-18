@@ -8,44 +8,6 @@ const Question = require('../model/question');
 const WizardScene = require('telegraf/scenes/wizard');
 const Stage = require('telegraf/stage');
 
-const newTopicScene = new WizardScene(
-    'new-topic',
-    ctx => {
-        ctx.reply('Ok, you want to create a new topic. Enter the name:')
-        return ctx.wizard.next();
-    },
-    ctx => {
-        var topic = new Topic({name:ctx.message.text});
-        topic.save().then(function(topic){
-            ctx.reply(topic.name + ' created successfully.');
-            return ctx.scene.leave();
-        })
-    }
-);
-const newQuestionScene = new WizardScene(
-    'new-question',
-    ctx => {
-        qaService.showTopics(ctx);
-        return ctx.wizard.next();
-    },
-    ctx => {
-        ctx.wizard.state.topic = ctx.callbackQuery.data.split('/')[1];
-        ctx.reply('Write the question that you would like being answerd:')
-        return ctx.wizard.next();
-    },
-    ctx => {
-        ctx.wizard.state.question = ctx.message.text;
-        var question = new Question(ctx.wizard.state);
-        question.save().then(function(question){
-            console.log(question.toJSON());
-            ctx.reply('question submitted successfully. It will be answered as soon as possible.');
-            return ctx.scene.leave();
-        })
-    }
-);
-
-const stage = new Stage([newTopicScene, newQuestionScene], {});
-
 module.exports = {
 
     showHelp: function(ctx){
@@ -67,12 +29,21 @@ module.exports = {
         const queryData = ctx.callbackQuery.data.split('/');
         console.log('showQuestions:'+queryData);
         Question.find({topic:queryData[1]}).then(function(questions){
-            var buttons =_.map(questions, function(question){
-                return Markup.callbackButton(question.question, 'question/'+question._id);
-            })
-            return ctx.reply("Here is list of questions for this topic:", 
-                Markup.inlineKeyboard(_.chunk(buttons,1)).extra()
-            )
+            if (questions.length){
+                var buttons =_.map(questions, function(question){
+                    return Markup.callbackButton(question.question, 'question/'+question._id);
+                })
+                buttons.push(Markup.callbackButton('Submit a new question', 'newQuestion/'+queryData[1]));
+                return ctx.reply("Here is list of questions for this topic:", 
+                    Markup.inlineKeyboard(_.chunk(buttons,1)).extra()
+                )
+            } else {
+                return ctx.reply("No questions yet.", 
+                    Markup.inlineKeyboard(
+                        [Markup.callbackButton('Submit a new question', 'newQuestion/'+queryData[1])]
+                    ).extra()
+                )
+            }
         })
     },
 
@@ -99,7 +70,11 @@ module.exports = {
         })
     },
 
-    newQuestion: function(ctw){
+    newQuestionFn: function(callbackData){
+        return callbackData.startsWith('newQuestion/')
+    },
+    
+    newQuestion: function(ctx){
         ctx.scene.enter('new-question');
     },
 

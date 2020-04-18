@@ -1,8 +1,9 @@
 var mongoose = require('mongoose');
 const Telegraf = require('telegraf');
-const Extra = require('telegraf/extra');
-const fs = require('fs');
-const path = require('path');
+const WizardScene = require('telegraf/scenes/wizard');
+const Stage = require('telegraf/stage');
+const session = require('telegraf/session')
+
 const qaService = require('./service/qa');
 
 console.log('Starting the bot...');
@@ -18,60 +19,51 @@ mongoose.connect(connectionString, mongoOpts);
 const bot = new Telegraf('1081398486:AAFs2L1OOtRTi321vuNwUrgn7ddMlNoWD4g', { webhookReply: true })
 bot.telegram.setWebhook('https://pikimoni-bot.azurewebsites.net/api/PikimoniBot');
 
-bot.on('callback_query', getCity);
+const newTopicScene = new WizardScene(
+    'new-topic',
+    ctx => {
+        ctx.reply('Ok, you want to create a new topic. Enter the name:')
+        return ctx.wizard.next();
+    },
+    ctx => {
+        var topic = new Topic({name:ctx.message.text});
+        topic.save().then(function(topic){
+            ctx.reply(topic.name + ' created successfully.');
+            return ctx.scene.leave();
+        })
+    }
+);
+const newQuestionScene = new WizardScene(
+    'new-question',
+    ctx => {
+        ctx.wizard.state.topic = ctx.callbackQuery.data.split('/')[1];
+        ctx.reply('Write the question that you would like being answerd:')
+        return ctx.wizard.next();
+    },
+    ctx => {
+        ctx.wizard.state.question = ctx.message.text;
+        var question = new Question(ctx.wizard.state);
+        question.save().then(function(question){
+            console.log(question.toJSON());
+            ctx.reply('question submitted successfully. It will be answered as soon as possible.');
+            return ctx.scene.leave();
+        })
+    }
+);
+
+const stage = new Stage([newTopicScene, newQuestionScene], {});
+
+//bot.on('callback_query', getCity);
+bot.use(session())
+bot.use(stage.middleware());
 bot.on('sticker', qaService.showHelp);
 bot.action('topics', qaService.topics);
-bot.action('newQuestion', qaService.newQuestion);
+bot.action(qaService.newQuestionFn, qaService.newQuestion);
+bot.action(qaService.topicFn, qaService.showQuestions);
+bot.action(qaService.questionFn, qaService.showAnswer);
 
 bot.hears(/^/, qaService.showHelp);
 bot.catch((err, ctx) => { console.log(`Error for ${ctx.updateType}`, err); });
-
-/**
- * Returns the markdown text for the specified city.
- * @param city - the id of the city
- * @param functionDirectory - path to the directory with data files
- */
-function getData(city, functionDirectory) {
-    return new Promise((resolve, reject) => {
-        if (city.data) {
-            // return city data from cache
-            return resolve(city.data);
-        }
-
-        // read city data from a file
-        const filePath = path.join(functionDirectory, `${city.id}.md`);
-        fs.readFile(filePath, (error, data) => {
-            if (error) {
-                console.log(error);
-
-                city.data = undefined;
-                return resolve('no data :(');
-            }
-
-            // save city data to cache
-            city.data = data.toString();
-            return resolve(city.data);
-        });
-    });
-}
-
-/**
- * Returns a data for the specified city
- * @param context - Telegraf context
- */
-function getCity(context) {
-    const cityId = context.update.callback_query.data;
-    const city = cities.filter((city) => city.id === cityId)[0];
-
-    return context.answerCbQuery().then(() => {
-        getData(city, context.functionDirectory).then((data) => {
-            return context.replyWithMarkdown(data, {
-                // do not add preview for links
-                disable_web_page_preview: true,
-            });
-        });
-    });
-}
 
 module.exports = async function (context, req) {
     // extend Telegraf context with the data files directory
