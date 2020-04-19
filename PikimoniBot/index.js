@@ -51,7 +51,7 @@ const newQuestionScene = new WizardScene(
             ctx.wizard.state.id=question._id;
             ctx.reply('question submitted successfully. It will be answered as soon as possible.');
 
-            var text = '[UPDATE] A new question has been submitted:\n'
+            var text = 'A new question has been submitted:\n'
                 + '\n*'+ctx.wizard.state.question+'*\n'
                 + '\nClick [here](https://t.me/pikimoni_bot?start=newAnswer-'+ctx.wizard.state.id+') to provide an answer.';
             bot.telegram.sendMessage(CHAT_ID,text,{"parse_mode":"Markdown"});
@@ -68,7 +68,8 @@ const newAnswerScene = new WizardScene(
             ctx.wizard.state.question = ctx.message.text.split('-')[1];
         }
         Question.findById(ctx.wizard.state.question).then(function(question){
-            ctx.replyWithMarkdown('*'+question.question+'*')
+            ctx.replyWithMarkdown('Write an answer to this question:\n'
+                +'\n*'+question.question+'*')
             return ctx.wizard.next();
         })
     },
@@ -80,7 +81,7 @@ const newAnswerScene = new WizardScene(
             ctx.reply('Thank you for writing an answer and contributing to PIKIMONI Knowledge Base!');
 
             Question.findById(ctx.wizard.state.question).then(function(question){
-                var text = '[UPDATE] A new answer has been published for this question:\n'
+                var text = 'A new answer has been published for this question:\n'
                     +'\n*'+question.question+'*\n'
                     +'\n_'+ctx.wizard.state.answer+'_';
                 bot.telegram.sendMessage(CHAT_ID, text, {"parse_mode":"Markdown"});
