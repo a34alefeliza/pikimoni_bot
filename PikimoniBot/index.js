@@ -67,8 +67,10 @@ const newAnswerScene = new WizardScene(
         } else if (ctx.message) {
             ctx.wizard.state.question = ctx.message.text.split('-')[1];
         }
-        ctx.reply('Write the answer:')
-        return ctx.wizard.next();
+        Question.findById(ctx.wizard.state.question).then(function(question){
+            ctx.replyWithMarkdown('*'+question.question+'*')
+            return ctx.wizard.next();
+        })
     },
     ctx => {
         ctx.wizard.state.answer = ctx.message.text;
