@@ -62,8 +62,9 @@ const newQuestionScene = new WizardScene(
 const newAnswerScene = new WizardScene(
     'new-answer',
     ctx => {
-        ctx.wizard.state.question = ctx.callbackQuery.data.split('/')[1];
-        if(!ctx.wizard.state.question){
+        if (ctx.callbackQuery){
+            ctx.wizard.state.question = ctx.callbackQuery.data.split('/')[1];
+        } else if (ctx.message) {
             ctx.wizard.state.question = ctx.message.text.split('-')[1];
         }
         ctx.reply('Write the answer:')

@@ -127,7 +127,7 @@ module.exports = {
     },
 
     start: function(ctx){
-        if (ctx.message.text.startWith('newAnswer')){
+        if (ctx.message.text.startsWith('/start newAnswer')){
             ctx.scene.enter('new-answer');
         }
     }
