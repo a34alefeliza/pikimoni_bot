@@ -11,6 +11,7 @@ const qaService = require('./service/qa');
 
 console.log('Starting the bot...');
 
+const CHAT_ID=-400571274;
 const connectionString = 'mongodb://pkm-mongo:DLwjqWBdEJzsv64WkfpxHAIKS92rgKHX853pLkt0bNL75uYe5pV9oTxz1LdrlDp1eCmOveyhEKWTMaPhIPLEoA==@pkm-mongo.mongo.cosmos.azure.com:10255/?ssl=true&appName=@pkm-mongo@';
 //const connectionString = 'mongodb://localhost:27018/bot';
 var mongoOpts = { 
@@ -47,10 +48,17 @@ const newQuestionScene = new WizardScene(
         ctx.wizard.state.question = ctx.message.text;
         var question = new Question(ctx.wizard.state);
         question.save().then(function(question){
-            console.log(question.toJSON());
+            ctx.wizard.state.id=question._id;
             ctx.reply('question submitted successfully. It will be answered as soon as possible.');
-            return ctx.scene.leave();
+            return ctx.wizard.next();
         })
+    },
+    ctx => {
+        var text = 'A new question has been submitted:\n'
+            +ctx.wizard.state.question
+            //+'\nClick <a href="https://t.me/pikimoni_bot?start=newAnswer/"'+ctx.wizard.state.id+'>here</a> to answer this question.';
+        bot.telegram.sendMessage(CHAT_ID,text,{parse_mode:'HTML'});
+        return ctx.scene.leave();
     }
 );
 const newAnswerScene = new WizardScene(
@@ -63,9 +71,18 @@ const newAnswerScene = new WizardScene(
     ctx => {
         ctx.wizard.state.answer = ctx.message.text;
         var answer = new Answer(ctx.wizard.state);
-        answer.save().then(function(question){
-            console.log(question.toJSON());
+        answer.save().then(function(answer){
+            ctx.wizard.state.id=answer._id;
             ctx.reply('Thank you for writing an answer and contributing to PIKIMONI Knowledge Base!');
+            return ctx.wizard.next();
+        })
+    },
+    ctx => {
+        Question.findById(ctx.wizard.state.question).then(function(question){
+            var text = '[UPDATE] A new answer has been published for this question:\n'
+                +question.question
+                //+'\nClick <a href="https://t.me/pikimoni_bot?start=showAnswers/"'+question._id+'>here</a> to read the answer.';
+            bot.telegram.sendMessage(CHAT_ID, text, {parse_mode:'HTML'});
             return ctx.scene.leave();
         })
     }
