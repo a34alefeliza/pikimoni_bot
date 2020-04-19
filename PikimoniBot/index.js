@@ -54,10 +54,10 @@ const newQuestionScene = new WizardScene(
         })
     },
     ctx => {
-        var text = 'A new question has been submitted:\n'
-            +ctx.wizard.state.question
-            //+'\nClick <a href="https://t.me/pikimoni_bot?start=newAnswer/"'+ctx.wizard.state.id+'>here</a> to answer this question.';
-        bot.telegram.sendMessage(CHAT_ID,text,{parse_mode:'HTML'});
+        var text = '[UPDATE] A new question has been submitted:\n'
+            + '\n*'+ctx.wizard.state.question+'*\n'
+            + '\nClick [here](https://t.me/pikimoni_bot?start=newAnswer/'+ctx.wizard.state.id+') to provide an answer.';
+        bot.telegram.sendMessage(CHAT_ID,text,{"parse_mode":"Markdown"});
         return ctx.scene.leave();
     }
 );
@@ -80,9 +80,9 @@ const newAnswerScene = new WizardScene(
     ctx => {
         Question.findById(ctx.wizard.state.question).then(function(question){
             var text = '[UPDATE] A new answer has been published for this question:\n'
-                +question.question
-                //+'\nClick <a href="https://t.me/pikimoni_bot?start=showAnswers/"'+question._id+'>here</a> to read the answer.';
-            bot.telegram.sendMessage(CHAT_ID, text, {parse_mode:'HTML'});
+                +'\n*'+question.question+'*\n'
+                +'\n```'+ctx.wizard.state.answer+'```';
+            bot.telegram.sendMessage(CHAT_ID, text, {"parse_mode":"Markdown"});
             return ctx.scene.leave();
         })
     }
