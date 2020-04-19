@@ -61,8 +61,7 @@ module.exports = {
                         Markup.inlineKeyboard([
                             Markup.callbackButton('Add an answer', 'newAnswer/'+question._id),
                             Markup.callbackButton('Back', 'topic/'+question.topic)
-                        ]
-                        ).extra()
+                        ]).extra()
                     )
                 } else {
                     return ctx.reply("No answers yet.", 
@@ -106,4 +105,30 @@ module.exports = {
         ctx.scene.enter('new-topic');
     },
 
+    inlineQuery: function(ctx){
+        if (ctx.inlineQuery.query=='topics'){
+            Topic.find().then(function(topics){
+                var results = _.map(topics, function(topic){
+                    return {
+                        type: 'article',
+                        id: topic._id,
+                        title: topic.name,
+                        input_message_content: {
+                            message_text: topic.name
+                        },
+                        reply_markup: Markup.inlineKeyboard([
+                            Markup.callbackButton(topic.name, 'topic/'+topic._id)
+                        ])
+                    }
+                })
+                return ctx.answerInlineQuery(results);
+            })
+        }
+    },
+
+    start: function(ctx){
+        if (ctx.message.text.startWith('newAnswer')){
+            ctx.scene.enter('new-answer');
+        }
+    }
 }

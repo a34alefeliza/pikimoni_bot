@@ -50,21 +50,22 @@ const newQuestionScene = new WizardScene(
         question.save().then(function(question){
             ctx.wizard.state.id=question._id;
             ctx.reply('question submitted successfully. It will be answered as soon as possible.');
-            return ctx.wizard.next();
+
+            var text = '[UPDATE] A new question has been submitted:\n'
+                + '\n*'+ctx.wizard.state.question+'*\n'
+                + '\nClick [here](https://t.me/pikimoni_bot?start=newAnswer-'+ctx.wizard.state.id+') to provide an answer.';
+            bot.telegram.sendMessage(CHAT_ID,text,{"parse_mode":"Markdown"});
+            return ctx.scene.leave();
         })
-    },
-    ctx => {
-        var text = '[UPDATE] A new question has been submitted:\n'
-            + '\n*'+ctx.wizard.state.question+'*\n'
-            + '\nClick [here](https://t.me/pikimoni_bot?start=newAnswer/'+ctx.wizard.state.id+') to provide an answer.';
-        bot.telegram.sendMessage(CHAT_ID,text,{"parse_mode":"Markdown"});
-        return ctx.scene.leave();
     }
 );
 const newAnswerScene = new WizardScene(
     'new-answer',
     ctx => {
         ctx.wizard.state.question = ctx.callbackQuery.data.split('/')[1];
+        if(!ctx.wizard.state.question){
+            ctx.wizard.state.question = ctx.message.text.split('-')[1];
+        }
         ctx.reply('Write the answer:')
         return ctx.wizard.next();
     },
@@ -74,26 +75,27 @@ const newAnswerScene = new WizardScene(
         answer.save().then(function(answer){
             ctx.wizard.state.id=answer._id;
             ctx.reply('Thank you for writing an answer and contributing to PIKIMONI Knowledge Base!');
-            return ctx.wizard.next();
-        })
-    },
-    ctx => {
-        Question.findById(ctx.wizard.state.question).then(function(question){
-            var text = '[UPDATE] A new answer has been published for this question:\n'
-                +'\n*'+question.question+'*\n'
-                +'\n```'+ctx.wizard.state.answer+'```';
-            bot.telegram.sendMessage(CHAT_ID, text, {"parse_mode":"Markdown"});
-            return ctx.scene.leave();
+
+            Question.findById(ctx.wizard.state.question).then(function(question){
+                var text = '[UPDATE] A new answer has been published for this question:\n'
+                    +'\n*'+question.question+'*\n'
+                    +'\n_'+ctx.wizard.state.answer+'_';
+                bot.telegram.sendMessage(CHAT_ID, text, {"parse_mode":"Markdown"});
+                return ctx.scene.leave();
+            })
         })
     }
 );
 
 const stage = new Stage([newTopicScene, newQuestionScene, newAnswerScene], {});
 
-//bot.on('callback_query', getCity);
 bot.use(session())
 bot.use(stage.middleware());
+
+bot.start(qaService.start);
+
 bot.on('sticker', qaService.showHelp);
+//bot.on('inline_query', qaService.inlineQuery)
 
 bot.action('topics', qaService.topics);
 bot.action(qaService.newQuestionFn, qaService.newQuestion);
